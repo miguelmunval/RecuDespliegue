@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Despliegue app php sobre instancia EC2 con ubuntu 20.04
+Resources:
+  EC2SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'My security group description'
+      VpcId: 'vpc-06d271ff61600bfcb'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+  MyLaunchTemplate:
+    Type: "AWS::EC2::LaunchTemplate"
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Name: LabInstanceProfile
+        ImageId: 'ami-09cd747c78a9add63'
+        InstanceType: 't2.micro'
+        KeyName:
+          'vockey'
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd php php-mysqlnd
+            systemctl start httpd
+            systemctl enable httpd
+        SecurityGroupIds:
+          - !Ref EC2SecurityGroup
+          - !Ref MyDBSecurityGroup
+  EC2Instance1:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+      - MyLaunchTemplate
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt update -y
+          apt install apache2 -y
+          apt install mysql-server -y
+          apt install php libapache2-mod-php -y
+          apt install php-mysql -y
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+  EC2Instance2:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+      - MyLaunchTemplate
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt update -y
+          apt install apache2 -y
+          apt install mysql-server -y
+          apt install php libapache2-mod-php -y
+          apt install php-mysql -y
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+  EC2Instance3:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+      - MyLaunchTemplate
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt update -y
+          apt install apache2 -y
+          apt install mysql-server -y
+          apt install php libapache2-mod-php -y
+          apt install php-mysql -y
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+  EC2Instance4:
+    Type: 'AWS::EC2::Instance'
+    DependsOn:
+      - MyLaunchTemplate
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref MyLaunchTemplate
+        Version: !GetAtt MyLaunchTemplate.LatestVersionNumber
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt update -y
+          apt install apache2 -y
+          apt install mysql-server -y
+          apt install php libapache2-mod-php -y
+          apt install php-mysql -y
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+  MyDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: EC2SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS instance
+      VpcId: 'vpc-06d271ff61600bfcb'
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref EC2SecurityGroup
+
+  MyDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: mysql
+      DBInstanceClass: db.t2.micro
+      MasterUsername: username
+      MasterUserPassword: Usuario0?
+      DBName: template
+      AllocatedStorage: 20
+      VPCSecurityGroups:
+        - !Ref MyDBSecurityGroup
+        - !Ref EC2SecurityGroup
+  MyALB:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Name: !Ref AWS::StackName
+      Scheme: "internet-facing"
+      Type: "application"
+      IpAddressType: "ipv4"
+      SecurityGroups:
+        - !Ref EC2SecurityGroup
+      Subnets:
+        - "subnet-04df116a986664795"
+        - "subnet-0891dd0c80413a3b5"
+        - "subnet-0b5d736bcefe1e990"
+        - "subnet-065bcb8bd5628925d"
+        - "subnet-02b513e00ab4d71f7"
+        - "subnet-04f36b58aae68288a"
