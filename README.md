@@ -8,3 +8,5 @@
 - Esto lo hacemos para borrar el archivo .html que viene por defecto y que aparecería en la página y ahora procedemos a meter nuestro código:
 1. sudo nano index.php
 - Y metemos el código de la app simplemente copiando y pegando.
+- Hacemos también un restart de apache para que lea los cambios:
+1. sudo systemctl restart apache2
